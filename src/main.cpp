@@ -18,6 +18,6 @@ void setup()
 void loop()
 {
     float distance_cm = sensor_measurement(TRIGGER_PIN, ECHO_PIN);
-    sprintf(payload, "%f", distance_cm);
+    sprintf(payload, "%.2f", distance_cm);
     connected_mqtt_client.publish("tele/irrigation/state", payload);
 }
