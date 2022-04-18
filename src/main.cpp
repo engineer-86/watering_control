@@ -1,7 +1,7 @@
 #include <Arduino.h>
-#include "sensor.hpp"
-#include "wifi.hpp"
-#include "mqtt.hpp"
+#include <sensor.hpp>
+#include <wifi.hpp>
+#include <mqtt.hpp>
 
 static PubSubClient connected_mqtt_client;
 char payload[20];
