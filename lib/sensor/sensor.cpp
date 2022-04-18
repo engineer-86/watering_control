@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "sensor.hpp"
+#include <sensor.hpp>
 
 float sensor_measurement(int trigger_pin, int echo_pin)
 {
@@ -13,6 +13,6 @@ float sensor_measurement(int trigger_pin, int echo_pin)
   duration = pulseIn(ECHO_PIN, HIGH);
   distance = duration * SOUND_VELOCITY / 2;
   Serial.println(distance);
-  delay(200);
+  delay(5000);
   return distance;
 }
