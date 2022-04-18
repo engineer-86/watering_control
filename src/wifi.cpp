@@ -7,15 +7,16 @@
 
 // Credentials credentials;
 void connectWithWifi()
-{   
+{
     Credentials wifi_credentials;
     WiFi.begin(wifi_credentials.getWifiSSID(),
-    wifi_credentials.getWifiPassword());
+               wifi_credentials.getWifiPassword());
+               
     while (WiFi.status() != WL_CONNECTED)
     {
-        Serial.print("Versuche zu verbinden mit WIFI.");
+        Serial.print("Versuche zu verbinden mit WIFI.\n");
         delay(500);
     }
     Serial.println("");
-    Serial.println("WiFi verbunden");
+    Serial.println("WiFi verbunden\n");
 }

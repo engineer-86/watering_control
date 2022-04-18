@@ -1,16 +1,18 @@
 #include <Arduino.h>
+#include "sensor.hpp"
 
-int sensor_measurement(int trigger_pin, int echo_pin)
+float sensor_measurement(int trigger_pin, int echo_pin)
 {
-    long duration, distance;
-    digitalWrite(trigger_pin, LOW);
-    delayMicroseconds(2);
-    digitalWrite(trigger_pin, HIGH);
-    delayMicroseconds(10);
-    digitalWrite(trigger_pin, LOW);
-    duration = pulseIn(echo_pin, HIGH);
-    distance = duration / 58.2;
-    Serial.println(distance);
-    delay(50); // milliseconds
-    return (int) distance;
+  long duration;
+  float distance;
+  digitalWrite(TRIGGER_PIN, LOW);
+  delayMicroseconds(2);
+  digitalWrite(TRIGGER_PIN, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIGGER_PIN, LOW);
+  duration = pulseIn(ECHO_PIN, HIGH);
+  distance = duration * SOUND_VELOCITY / 2;
+  Serial.println(distance);
+  delay(200);
+  return distance;
 }
