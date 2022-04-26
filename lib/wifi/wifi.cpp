@@ -6,7 +6,7 @@
 #include <ESP8266WiFi.h>
 
 // Credentials credentials;
-void connectWithWifi()
+void connectTohWifi()
 {
     Credentials wifi_credentials;
     WiFi.begin(wifi_credentials.getWifiSSID(),
