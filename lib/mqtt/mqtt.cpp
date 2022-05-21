@@ -12,8 +12,8 @@ PubSubClient connectToBroker()
   while (!mqtt_client.connected())
   {
     String client_id = "Irrigation-";
-    client_id += String(WiFi.macAddress());
-    Serial.printf("The client %s connects to the public mqtt broker\n", client_id.c_str());
+
+  
     if (mqtt_client.connect(client_id.c_str(), broker_credentials.getBrokerUsername(),
                             broker_credentials.getBrokerPassword()))
     {

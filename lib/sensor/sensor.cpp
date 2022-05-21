@@ -2,10 +2,10 @@
 #include <sensor.hpp>
 #include <string.h>
 
-float water_level_measurement(int trigger_pin, int echo_pin)
+int water_level_measurement(int trigger_pin, int echo_pin)
 {
   long duration;
-  float distance;
+  int distance;
   digitalWrite(trigger_pin, LOW);
   delayMicroseconds(2);
   digitalWrite(trigger_pin, HIGH);
@@ -13,7 +13,6 @@ float water_level_measurement(int trigger_pin, int echo_pin)
   digitalWrite(trigger_pin, LOW);
   duration = pulseIn(echo_pin, HIGH);
   distance = duration * SOUND_VELOCITY / 2;
-  Serial.println(distance);
   delay(1000);
   return distance;
 }
