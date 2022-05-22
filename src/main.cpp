@@ -8,11 +8,10 @@
 #include <string.h>
 #include <SoftwareSerial.h>
 static PubSubClient connected_mqtt_client;
-char payload[20];
-static StaticJsonDocument<256> info;
-SoftwareSerial linkSerial(0, 2); // RX, TX
+SoftwareSerial linkSerial(13,15 ); // RX, TX
 
-char out[128];
+StaticJsonDocument<300> doc;
+char out[300];
 
 void setup()
 {
@@ -31,7 +30,6 @@ void loop()
     {
         // Allocate the JSON document
         // This one must be bigger than for the sender because it must store the strings
-        StaticJsonDocument<300> doc;
 
         // Read the JSON document from the "link" serial port
         DeserializationError err = deserializeJson(doc, linkSerial);
@@ -40,10 +38,15 @@ void loop()
         {
             // Print the values
             // (we must use as<T>() to resolve the ambiguity)
-            Serial.print("timestamp = ");
-            Serial.println(doc["timestamp"].as<long>());
-            Serial.print("value = ");
-            Serial.println(doc["value"].as<int>());
+
+            Serial.print("moisture sensor 1 = ");
+            Serial.println(doc["moisture_sensor_1"].as<int>());
+            Serial.print("moisture sensor 2 = ");
+            Serial.println(doc["moisture_sensor_2"].as<int>());
+            Serial.print("water level = ");
+            Serial.println(doc["water_level"].as<float>());
+            Serial.print("pump state = ");
+            Serial.println(doc["pump_on"].as<int>());
         }
         else
         {
@@ -57,12 +60,7 @@ void loop()
         }
     }
 
-    info["water_tank_level"] = "distance_cm";
-    info["moisture"] = "moisture_value";
-    info["pump on"] = "pump_on";
-    info["text"] = "info_text";
-    serializeJson(info, out);
-
+    serializeJson(doc, out);
     connected_mqtt_client.publish("tele/watering/state", out);
     delay(1000);
 }
