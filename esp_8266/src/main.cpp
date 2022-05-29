@@ -27,6 +27,7 @@ char payload[128];
 
 void setup()
 {
+    pinMode(PUMP_RELAIS_PIN, OUTPUT);
     Serial.begin(115200);
     while (!Serial)
         continue;
@@ -42,15 +43,15 @@ void loop()
 {
     // Allocate the JSON document
     // This one must be bigger than for the sender because it must store the strings
-    StaticJsonDocument<1000> doc;
-
-    String info_text = "";
+    static StaticJsonDocument<1000> doc;
 
     if (linkSerial.available())
     {
         // Read the JSON document from the "link" serial port
         // Serial.setTimeout(1000);
         DeserializationError error = deserializeJson(doc, linkSerial);
+        String info_text = "";
+        doc["pump_on"] = pump_on;
 
         if (error == DeserializationError::Ok)
         {
@@ -65,14 +66,8 @@ void loop()
                 linkSerial.read();
         }
 
-        serializeJson(doc, payload);
-        connected_mqtt_client.publish("tele/watering/state", payload);
-        delay(500);
-
-        // TODO
-
         int average_moisture = ((int)doc["sensor"]["moisture_sensor_1"] + (int)doc["sensor"]["moisture_sensor_2"]) / 2;
-        // Serial.println(average_moisture);
+        Serial.println(average_moisture);
 
         if ((int)doc["water_level"] <= WATER_TANK_LEVEL_PERCENT_MIN)
         {
@@ -88,24 +83,27 @@ void loop()
         }
         else
         {
-            if (((average_moisture == SOIL_DRY) && (!pump_on)) || ((start_pump_cmd_extern == true)))
+            if (((average_moisture <= SOIL_DRY) && (!pump_on)) || ((start_pump_cmd_extern == true)))
             {
                 pump_on = true;
                 start_pump();
-                info_text = "Start pump";
+                doc["pump_on"] = pump_on;
                 start_pump_cmd_extern = false;
             }
-            else if (((average_moisture == SOIL_WET) && (pump_on)) || ((stop_pump_cmd_extern == true)))
+            else if (((average_moisture >= SOIL_WET) && (pump_on)) || ((stop_pump_cmd_extern == true)))
             {
                 pump_on = false;
                 stop_pump();
-                info_text = "stop pump";
+                doc["pump_on"] = pump_on;
                 stop_pump_cmd_extern = false;
             }
             else
-            { 
-                ;
+            {
+                Serial.println("WIERD STATE");
             }
         }
+        serializeJson(doc, payload);
+        connected_mqtt_client.publish("tele/watering/state", payload);
+        delay(500);
     }
 }

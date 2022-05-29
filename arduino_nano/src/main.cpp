@@ -31,7 +31,7 @@ void loop()
   int moisture_value_1 = analog_moisture_measurement(0);
   int moisture_value_2 = analog_moisture_measurement(1);
   int water_level_value = water_level_measurement(ULTRA_SONIC_TRIGGER_PIN, ULTRA_SONIC_ECHO_PIN);
-  print_device_state(moisture_value_1, moisture_value_2, water_level_value, pump_state);
+  print_device_state(moisture_value_1, moisture_value_2, water_level_value);
 
   // Create the JSON document
   StaticJsonDocument<300> doc;
@@ -39,7 +39,7 @@ void loop()
   doc["sensor"]["moisture_sensor_1"] = moisture_value_1;
   doc["sensor"]["moisture_sensor_2"] = moisture_value_2;
   doc["water_level"] = water_level_value;
-  doc["pump_on"] = pump_state;
+  //doc["pump_on"] = pump_state;
   // Send the JSON document over the "link" serial port
   serializeJson(doc, linkSerial);
 
