@@ -10,6 +10,9 @@
 static PubSubClient connected_mqtt_client;
 SoftwareSerial linkSerial(13, 15); // RX, TX
 
+// pump of by value: 11
+// 
+
 char out[128];
 
 void setup()

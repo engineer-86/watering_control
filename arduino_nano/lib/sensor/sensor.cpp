@@ -13,8 +13,12 @@ int water_level_measurement(int trigger_pin, int echo_pin)
   digitalWrite(trigger_pin, LOW);
   duration = pulseIn(echo_pin, HIGH);
   distance = duration * SOUND_VELOCITY / 2;
-  delay(1000);
-  return distance;
+  
+  delay(500);
+  int distance_in_percent = map(distance,
+                                WATER_TANK_LEVEL_MIN,
+                                WATER_TANK_LEVEL_MAX, 0, 100);
+  return distance_in_percent;
 }
 
 int analog_moisture_measurement(int sensor_pin)

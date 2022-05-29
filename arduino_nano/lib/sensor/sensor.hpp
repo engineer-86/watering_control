@@ -9,8 +9,8 @@
 #define MOISTRUE_SENSOR_AIR_VALUE 1050
 #define MOISTRUE_SENSOR_WATER_VALUE 190
 
-#define WATER_TANK_LEVEL_MIN 20 // TODO: map max and min value to percent
-#define WATER_TANK_LEVEL_MAX 3
+#define WATER_TANK_LEVEL_MIN 20 // distance to bottom of tank
+#define WATER_TANK_LEVEL_MAX 2 // distance from water to sensor by filled tank
 
 #define SOIL_WET 0
 #define SOIL_DRY 1
