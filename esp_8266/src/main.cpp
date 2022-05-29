@@ -7,13 +7,23 @@
 #include <ArduinoJson.h>
 #include <string.h>
 #include <SoftwareSerial.h>
+#include <serial.hpp>
+#include <pump.hpp>
+#define WATER_TANK_LEVEL_PERCENT_MIN 11
+#define WATER_TANK_LEVEL_PERCENT_MAX 95
+#define SOIL_DRY 3
+#define SOIL_WET 85
+
+bool pump_on = false;
+bool start_pump_cmd_extern = false;
+bool stop_pump_cmd_extern = false;
+
 static PubSubClient connected_mqtt_client;
 SoftwareSerial linkSerial(13, 15); // RX, TX
 
-// pump of by value: 11
-// 
+// pump is in water by water tank value: 11
 
-char out[128];
+char payload[128];
 
 void setup()
 {
@@ -30,71 +40,72 @@ void setup()
 
 void loop()
 {
+    // Allocate the JSON document
+    // This one must be bigger than for the sender because it must store the strings
+    StaticJsonDocument<1000> doc;
+
+    String info_text = "";
+
     if (linkSerial.available())
     {
-        StaticJsonDocument<300> doc;
-        // Allocate the JSON document
-        // This one must be bigger than for the sender because it must store the strings
-
         // Read the JSON document from the "link" serial port
-        Serial.setTimeout(5000);
-        DeserializationError err = deserializeJson(doc, linkSerial);
+        // Serial.setTimeout(1000);
+        DeserializationError error = deserializeJson(doc, linkSerial);
 
-        if (err == DeserializationError::Ok)
+        if (error == DeserializationError::Ok)
         {
-            Serial.println(out);
+            Serial.println(payload);
         }
         else
         {
-            // Print error to the "debug" serial port
             Serial.print("deserializeJson() returned ");
-            Serial.println(err.c_str());
-
+            Serial.println(error.c_str());
             // Flush all bytes in the "link" serial port buffer
             while (linkSerial.available() > 0)
                 linkSerial.read();
         }
-        
-        serializeJson(doc, out);
 
-        connected_mqtt_client.publish("tele/watering/state", out);
-        delay(1000);
+        serializeJson(doc, payload);
+        connected_mqtt_client.publish("tele/watering/state", payload);
+        delay(500);
+
+        // TODO
+
+        int average_moisture = ((int)doc["sensor"]["moisture_sensor_1"] + (int)doc["sensor"]["moisture_sensor_2"]) / 2;
+        // Serial.println(average_moisture);
+
+        if ((int)doc["water_level"] <= WATER_TANK_LEVEL_PERCENT_MIN)
+        {
+            info_text = "Water level low, refill!";
+            Serial.println(info_text);
+            pump_on = false;
+            stop_pump();
+        }
+        else if ((int)doc["water_level"] >= WATER_TANK_LEVEL_PERCENT_MAX)
+        {
+            info_text = "Water level too high, drain!";
+            Serial.println(info_text);
+        }
+        else
+        {
+            if (((average_moisture == SOIL_DRY) && (!pump_on)) || ((start_pump_cmd_extern == true)))
+            {
+                pump_on = true;
+                start_pump();
+                info_text = "Start pump";
+                start_pump_cmd_extern = false;
+            }
+            else if (((average_moisture == SOIL_WET) && (pump_on)) || ((stop_pump_cmd_extern == true)))
+            {
+                pump_on = false;
+                stop_pump();
+                info_text = "stop pump";
+                stop_pump_cmd_extern = false;
+            }
+            else
+            { 
+                ;
+            }
+        }
     }
 }
-
-  // float distance_cm = water_level_measurement(ULTRA_SONIC_TRIGGER_PIN, ULTRA_SONIC_ECHO_PIN);
-
-  // if (current_water_tank_level > WATER_TANK_LEVEL_MIN)
-  // {
-  //   info_text = "Water level low, refill!";
-  //   Serial.println(info_text);
-  //   pump_on = false;
-  //   stop_pump();
-  // }
-  // else if (current_water_tank_level < WATER_TANK_LEVEL_MAX)
-  // {
-  //   info_text = "Water level too high, drain!";
-  //   Serial.println(info_text);
-  // }
-  // else
-  // {
-
-  //   if (((moisture_value == SOIL_DRY) && (!pump_on)) || ((start_pump_cmd_extern == true)))
-  //   {
-  //     pump_on = true;
-  //     start_pump();
-  //     info_text = "Start pump";
-  //     start_pump_cmd_extern = false;
-  //   }
-  //   else if (((moisture_value == SOIL_WET) && (pump_on)) || ((stop_pump_cmd_extern == true)))
-  //   {
-  //     pump_on = false;
-  //     stop_pump();
-  //     info_text = "stop pump";
-  //     stop_pump_cmd_extern = false;
-  //   }
-  //   else
-  //   {
-  //     ;
-  //   }
-  // }
