@@ -67,8 +67,7 @@ void loop()
         }
 
         int average_moisture = ((int)doc["sensor"]["moisture_sensor_1"] + (int)doc["sensor"]["moisture_sensor_2"]) / 2;
-        Serial.println(average_moisture);
-
+     
         if ((int)doc["water_level"] <= WATER_TANK_LEVEL_PERCENT_MIN)
         {
             info_text = "Water level low, refill!";
@@ -99,7 +98,7 @@ void loop()
             }
             else
             {
-                Serial.println("WIERD STATE");
+                Serial.println("WEIRD STATE"); // TODO this case is dangerous!
             }
         }
         serializeJson(doc, payload);

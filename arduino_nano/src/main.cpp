@@ -39,7 +39,7 @@ void loop()
   doc["sensor"]["moisture_sensor_1"] = moisture_value_1;
   doc["sensor"]["moisture_sensor_2"] = moisture_value_2;
   doc["water_level"] = water_level_value;
-  //doc["pump_on"] = pump_state;
+  
   // Send the JSON document over the "link" serial port
   serializeJson(doc, linkSerial);
 
