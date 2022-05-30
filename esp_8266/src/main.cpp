@@ -13,15 +13,15 @@
 #define WATER_TANK_LEVEL_PERCENT_MAX 95
 #define SOIL_DRY 3
 #define SOIL_WET 85
+#define SERIAL_RX 13
+#define SERIAL_TX 15
 
 bool pump_on = false;
 bool start_pump_cmd_extern = false;
 bool stop_pump_cmd_extern = false;
 
 static PubSubClient connected_mqtt_client;
-SoftwareSerial linkSerial(13, 15); // RX, TX
-
-// pump is in water by water tank value: 11
+SoftwareSerial linkSerial(SERIAL_RX, SERIAL_TX);
 
 char payload[128];
 
