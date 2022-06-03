@@ -5,7 +5,7 @@
 #include <SoftwareSerial.h>
 #include <helper.hpp>
 
-SoftwareSerial linkSerial(7, 4); // RX, TX
+SoftwareSerial linkSerial(8, 6); // RX, TX
 static int current_water_tank_level = 0;
 static bool pump_state = 0;
 
@@ -26,7 +26,7 @@ void setup()
 
 void loop()
 {
-  char out[300];
+  char out[128];
   // start_pump();
   int moisture_value_1 = analog_moisture_measurement(0);
   int moisture_value_2 = analog_moisture_measurement(1);
@@ -34,16 +34,15 @@ void loop()
   print_device_state(moisture_value_1, moisture_value_2, water_level_value);
 
   // Create the JSON document
-  StaticJsonDocument<300> doc;
-
+  StaticJsonDocument<200> doc;
+  
   doc["sensor"]["moisture_sensor_1"] = moisture_value_1;
   doc["sensor"]["moisture_sensor_2"] = moisture_value_2;
   doc["water_level"] = water_level_value;
-  
+
   // Send the JSON document over the "link" serial port
   serializeJson(doc, linkSerial);
 
   // Wait
-  delay(500);
+  delay(5000);
 }
-

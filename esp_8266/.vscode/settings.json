@@ -5,6 +5,8 @@
         "compare": "cpp",
         "ostream": "cpp",
         "streambuf": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "*.bak": "cpp",
+        "*.bak2": "cpp"
     }
 }

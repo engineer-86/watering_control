@@ -13,7 +13,8 @@ int water_level_measurement(int trigger_pin, int echo_pin)
   digitalWrite(trigger_pin, LOW);
   duration = pulseIn(echo_pin, HIGH);
   distance = duration * SOUND_VELOCITY / 2;
-  
+   Serial.println("Raw_sensor_value:");
+  Serial.println(distance);
   delay(500);
   int distance_in_percent = map(distance,
                                 WATER_TANK_LEVEL_MIN,
@@ -24,7 +25,6 @@ int water_level_measurement(int trigger_pin, int echo_pin)
 int analog_moisture_measurement(int sensor_pin)
 { 
   int sensor_value = analogRead(sensor_pin);
-
   int moisture_in_percent = map(sensor_value,
                                 MOISTRUE_SENSOR_AIR_VALUE,
                                 MOISTRUE_SENSOR_WATER_VALUE, 0, 100);
