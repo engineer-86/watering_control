@@ -20,7 +20,7 @@ bool start_pump_cmd_extern = false;
 bool stop_pump_cmd_extern = false;
 
 static PubSubClient connected_mqtt_client;
-SoftwareSerial linkSerial(13, 15);
+SoftwareSerial linkSerial(SERIAL_RX, SERIAL_TX);
 
 char payload[200];
 
