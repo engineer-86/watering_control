@@ -18,7 +18,8 @@
 bool pump_on = false;
 bool start_pump_cmd_extern = false;
 bool stop_pump_cmd_extern = false;
-
+static String info_text = "";
+static StaticJsonDocument<300> to_publish;
 static PubSubClient connected_mqtt_client;
 SoftwareSerial linkSerial(SERIAL_RX, SERIAL_TX);
 
@@ -48,21 +49,22 @@ void loop()
     // Allocate the JSON document
     // This one must be bigger than for the sender because it must store the strings
     static StaticJsonDocument<300> doc;
-    static StaticJsonDocument<300> to_send;
+    //static StaticJsonDocument<300> to_publish;
 
-    if (linkSerial.available())
+    while (linkSerial.available())
     {
 
         Serial.println("Link to serial connection available");
         // Read the JSON document from the "link" serial port
 
         DeserializationError err = deserializeJson(doc, linkSerial);
-        String info_text = "";
+
         doc["pump_on"] = pump_on;
+        doc["info"] = "Watering system ready";
 
         if (err == DeserializationError::Ok)
         {
-            to_send = doc;
+            to_publish = doc;
             // Serial.println(payload);
             Serial.println("Serial Message OK");
             Serial.print("water_level = ");
@@ -91,15 +93,15 @@ void loop()
 
         if ((int)doc["water_level"] <= WATER_TANK_LEVEL_PERCENT_MIN)
         {
-            info_text = "Water level low, refill!";
-            Serial.println(info_text);
+            doc["info"] = "Water level low, refill!"; // TODO not working
+            Serial.println("Water level low, refill!");
             pump_on = false;
             stop_pump();
         }
         else if ((int)doc["water_level"] >= WATER_TANK_LEVEL_PERCENT_MAX)
         {
-            info_text = "Water level too high, drain!";
-            Serial.println(info_text);
+            doc["info"] = "Water level too high, drain!"; // TODO not working
+            Serial.println("Water level too high, drain!");
         }
         else
         {
@@ -108,6 +110,7 @@ void loop()
                 pump_on = true;
                 start_pump();
                 doc["pump_on"] = pump_on;
+                doc["info"] = "Soil dry, and Pump on";
                 start_pump_cmd_extern = false;
             }
             else if (((average_moisture >= SOIL_WET) && (pump_on)) || ((stop_pump_cmd_extern == true)))
@@ -115,6 +118,7 @@ void loop()
                 pump_on = false;
                 stop_pump();
                 doc["pump_on"] = pump_on;
+                doc["info"] = "Soil wet and pump off";
                 stop_pump_cmd_extern = false;
             }
             // else
@@ -122,7 +126,7 @@ void loop()
             //     Serial.println("WEIRD STATE"); // TODO this case is dangerous!
             // }
         }
-        serializeJson(to_send, payload);
+        serializeJson(to_publish, payload);
         connected_mqtt_client.publish("tele/watering/state", payload);
         delay(500);
     }
