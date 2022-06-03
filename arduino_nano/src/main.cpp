@@ -44,5 +44,5 @@ void loop()
   serializeJson(doc, linkSerial);
 
   // Wait
-  delay(3000);
+  delay(1000);
 }

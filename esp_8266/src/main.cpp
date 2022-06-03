@@ -15,11 +15,10 @@
 #define SERIAL_RX 13 // 13
 #define SERIAL_TX 15 // 15
 
+static String info_text = "Watering system ready";
 bool pump_on = false;
 bool start_pump_cmd_extern = false;
 bool stop_pump_cmd_extern = false;
-static String info_text = "";
-static StaticJsonDocument<300> to_publish;
 static PubSubClient connected_mqtt_client;
 SoftwareSerial linkSerial(SERIAL_RX, SERIAL_TX);
 
@@ -49,7 +48,7 @@ void loop()
     // Allocate the JSON document
     // This one must be bigger than for the sender because it must store the strings
     static StaticJsonDocument<300> doc;
-    //static StaticJsonDocument<300> to_publish;
+    static StaticJsonDocument<300> to_publish;
 
     while (linkSerial.available())
     {
@@ -60,13 +59,12 @@ void loop()
         DeserializationError err = deserializeJson(doc, linkSerial);
 
         doc["pump_on"] = pump_on;
-        doc["info"] = "Watering system ready";
+        doc["info"] = info_text;
 
         if (err == DeserializationError::Ok)
-        {
-            to_publish = doc;
-            // Serial.println(payload);
+        {   
             Serial.println("Serial Message OK");
+            to_publish = doc;
             Serial.print("water_level = ");
             Serial.println(doc["water_level"].as<int>());
 
@@ -93,32 +91,36 @@ void loop()
 
         if ((int)doc["water_level"] <= WATER_TANK_LEVEL_PERCENT_MIN)
         {
-            doc["info"] = "Water level low, refill!"; // TODO not working
-            Serial.println("Water level low, refill!");
+            info_text = "Water level low, refill!";
+            doc["info"] = info_text; // TODO not working
+            Serial.println(info_text);
             pump_on = false;
             stop_pump();
         }
         else if ((int)doc["water_level"] >= WATER_TANK_LEVEL_PERCENT_MAX)
         {
-            doc["info"] = "Water level too high, drain!"; // TODO not working
-            Serial.println("Water level too high, drain!");
+            info_text = "Water level too high, drain!";
+            doc["info"] = info_text; // TODO not working
+            Serial.println(info_text);
         }
         else
         {
             if (((average_moisture <= SOIL_DRY) && (!pump_on)) || ((start_pump_cmd_extern == true)))
             {
+                info_text = "Soil dry, and Pump on";
                 pump_on = true;
                 start_pump();
                 doc["pump_on"] = pump_on;
-                doc["info"] = "Soil dry, and Pump on";
+                doc["info"] = info_text;
                 start_pump_cmd_extern = false;
             }
             else if (((average_moisture >= SOIL_WET) && (pump_on)) || ((stop_pump_cmd_extern == true)))
             {
+                info_text = "Soil wet and pump off";
                 pump_on = false;
                 stop_pump();
                 doc["pump_on"] = pump_on;
-                doc["info"] = "Soil wet and pump off";
+                doc["info"] = info_text;
                 stop_pump_cmd_extern = false;
             }
             // else
