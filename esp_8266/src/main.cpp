@@ -8,6 +8,8 @@
 #include <string.h>
 #include <SoftwareSerial.h>
 #include <pump.hpp>
+
+
 #define WATER_TANK_LEVEL_PERCENT_MIN 11
 #define WATER_TANK_LEVEL_PERCENT_MAX 95
 #define SOIL_DRY 3
@@ -24,13 +26,14 @@ SoftwareSerial linkSerial(SERIAL_RX, SERIAL_TX);
 
 char payload[200];
 
+
 void setup()
 {
     pinMode(PUMP_RELAIS_PIN, OUTPUT);
-
+    void callback();
     connectTohWifi();
     connected_mqtt_client = connectToBroker();
-
+   
     Serial.begin(115200);
     while (!Serial)
     {
@@ -62,7 +65,7 @@ void loop()
         doc["info"] = info_text;
 
         if (err == DeserializationError::Ok)
-        {   
+        {
             Serial.println("Serial Message OK");
             to_publish = doc;
             Serial.print("water_level = ");
@@ -123,10 +126,10 @@ void loop()
                 doc["info"] = info_text;
                 stop_pump_cmd_extern = false;
             }
-            // else
-            // {
-            //     Serial.println("WEIRD STATE"); // TODO this case is dangerous!
-            // }
+            else
+            {
+                Serial.println("WEIRD STATE"); // TODO this case is dangerous!
+            }
         }
         serializeJson(to_publish, payload);
         connected_mqtt_client.publish("tele/watering/state", payload);
