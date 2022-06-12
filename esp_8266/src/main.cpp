@@ -9,11 +9,10 @@
 #include <SoftwareSerial.h>
 #include <pump.hpp>
 
-
-#define WATER_TANK_LEVEL_PERCENT_MIN 11
+#define WATER_TANK_LEVEL_PERCENT_MIN 10
 #define WATER_TANK_LEVEL_PERCENT_MAX 95
-#define SOIL_DRY 3
-#define SOIL_WET 85
+#define SOIL_DRY 60
+#define SOIL_WET 85  // TODO: need i that really ?
 #define SERIAL_RX 13 // 13
 #define SERIAL_TX 15 // 15
 
@@ -26,14 +25,8 @@ SoftwareSerial linkSerial(SERIAL_RX, SERIAL_TX);
 
 char payload[200];
 
-
 void setup()
 {
-    pinMode(PUMP_RELAIS_PIN, OUTPUT);
-    void callback();
-    connectTohWifi();
-    connected_mqtt_client = connectToBroker();
-   
     Serial.begin(115200);
     while (!Serial)
     {
@@ -43,6 +36,11 @@ void setup()
     // Initialize the "link" serial port
     // Use the lowest possible data rate to reduce error ratio
     linkSerial.begin(4800);
+
+    pinMode(PUMP_RELAIS_PIN, OUTPUT);
+    void callback();
+    connectTohWifi();
+    connected_mqtt_client = connectToBroker();
 }
 
 void loop()
@@ -63,6 +61,7 @@ void loop()
 
         doc["pump_on"] = pump_on;
         doc["info"] = info_text;
+        int average_moisture_value = 0;
 
         if (err == DeserializationError::Ok)
         {
@@ -90,12 +89,15 @@ void loop()
                 linkSerial.read();
         }
 
-        int average_moisture = ((int)doc["sensor"]["moisture_sensor_1"] + (int)doc["sensor"]["moisture_sensor_2"]) / 2;
+        // int average_moisture = ((int)doc["sensor"]["moisture_sensor_1"] + (int)doc["sensor"]["moisture_sensor_2"]) / 2;
+        int moisture_value_1 = ((int)doc["sensor"]["moisture_sensor_1"]);
+        int moisture_value_2 = ((int)doc["sensor"]["moisture_sensor_2"]);
+        average_moisture_value = ((moisture_value_1 + moisture_value_2) / 2);
 
         if ((int)doc["water_level"] <= WATER_TANK_LEVEL_PERCENT_MIN)
         {
             info_text = "Water level low, refill!";
-            doc["info"] = info_text; // TODO not working
+            doc["info"] = info_text;
             Serial.println(info_text);
             pump_on = false;
             stop_pump();
@@ -103,12 +105,15 @@ void loop()
         else if ((int)doc["water_level"] >= WATER_TANK_LEVEL_PERCENT_MAX)
         {
             info_text = "Water level too high, drain!";
-            doc["info"] = info_text; // TODO not working
+            doc["info"] = info_text;
             Serial.println(info_text);
         }
         else
         {
-            if (((average_moisture <= SOIL_DRY) && (!pump_on)) || ((start_pump_cmd_extern == true)))
+            info_text = "Water level ok!";
+            doc["info"] = info_text;
+
+            if (((average_moisture_value < SOIL_DRY) && (!pump_on)) || ((start_pump_cmd_extern == true)))
             {
                 info_text = "Soil dry, and Pump on";
                 pump_on = true;
@@ -117,7 +122,7 @@ void loop()
                 doc["info"] = info_text;
                 start_pump_cmd_extern = false;
             }
-            else if (((average_moisture >= SOIL_WET) && (pump_on)) || ((stop_pump_cmd_extern == true)))
+            else if (((average_moisture_value > SOIL_DRY && (pump_on))) || ((stop_pump_cmd_extern == true)))
             {
                 info_text = "Soil wet and pump off";
                 pump_on = false;
@@ -131,14 +136,9 @@ void loop()
                 Serial.println("WEIRD STATE"); // TODO this case is dangerous!
             }
         }
+        doc["average_moisture"] = average_moisture_value;
         serializeJson(to_publish, payload);
         connected_mqtt_client.publish("tele/watering/state", payload);
         delay(500);
     }
-    // else
-    // {
-    //     Serial.println("Link to serial connection not available! Check RX and TX wires!");
-    //     delay(1000);
-    //     connected_mqtt_client.publish("tele/watering/state", "Link to serial connection not available! Check RX and TX wires!");
-    // }
 }
