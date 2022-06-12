@@ -61,7 +61,6 @@ void loop()
 
         doc["pump_on"] = pump_on;
         doc["info"] = info_text;
-        int average_moisture_value = 0;
 
         if (err == DeserializationError::Ok)
         {
@@ -81,18 +80,12 @@ void loop()
         }
         else
         {
-            // Print error to the "debug" serial port
-            Serial.print("deserializeJson() returned ");
+            Serial.print("deserializeJson() returned "); // Print error to the "debug" serial port
             Serial.println(err.c_str());
-            // Flush all bytes in the "link" serial port buffer
-            while (linkSerial.available() > 0)
+
+            while (linkSerial.available() > 0) // Flush all bytes in the "link" serial port buffer
                 linkSerial.read();
         }
-
-        // int average_moisture = ((int)doc["sensor"]["moisture_sensor_1"] + (int)doc["sensor"]["moisture_sensor_2"]) / 2;
-        int moisture_value_1 = ((int)doc["sensor"]["moisture_sensor_1"]);
-        int moisture_value_2 = ((int)doc["sensor"]["moisture_sensor_2"]);
-        average_moisture_value = ((moisture_value_1 + moisture_value_2) / 2);
 
         if ((int)doc["water_level"] <= WATER_TANK_LEVEL_PERCENT_MIN)
         {
@@ -113,30 +106,24 @@ void loop()
             info_text = "Water level ok!";
             doc["info"] = info_text;
 
-            if (((average_moisture_value < SOIL_DRY) && (!pump_on)) || ((start_pump_cmd_extern == true)))
+            if (((int)doc["sensor"]["moisture_sensor_2"] < SOIL_DRY) && !pump_on)
             {
-                info_text = "Soil dry, and Pump on";
+                info_text = "Soil dry, and pump2 on";
                 pump_on = true;
                 start_pump();
                 doc["pump_on"] = pump_on;
                 doc["info"] = info_text;
-                start_pump_cmd_extern = false;
             }
-            else if (((average_moisture_value > SOIL_DRY && (pump_on))) || ((stop_pump_cmd_extern == true)))
+            else if (((int)doc["sensor"]["moisture_sensor_2"] > SOIL_DRY) && pump_on)
             {
-                info_text = "Soil wet and pump off";
+                info_text = "Soil wet and pump2 off";
                 pump_on = false;
                 stop_pump();
                 doc["pump_on"] = pump_on;
                 doc["info"] = info_text;
-                stop_pump_cmd_extern = false;
-            }
-            else
-            {
-                Serial.println("WEIRD STATE"); // TODO this case is dangerous!
             }
         }
-        doc["average_moisture"] = average_moisture_value;
+
         serializeJson(to_publish, payload);
         connected_mqtt_client.publish("tele/watering/state", payload);
         delay(500);
