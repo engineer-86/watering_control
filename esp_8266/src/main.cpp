@@ -11,15 +11,12 @@
 
 #define WATER_TANK_LEVEL_PERCENT_MIN 10
 #define WATER_TANK_LEVEL_PERCENT_MAX 95
-#define SOIL_DRY 60
-#define SOIL_WET 85  // TODO: need i that really ?
+#define SOIL_WET 80
 #define SERIAL_RX 13 // 13
 #define SERIAL_TX 15 // 15
 
 static String info_text = "Watering system ready";
 bool pump_on = false;
-bool start_pump_cmd_extern = false;
-bool stop_pump_cmd_extern = false;
 static PubSubClient connected_mqtt_client;
 SoftwareSerial linkSerial(SERIAL_RX, SERIAL_TX);
 
@@ -30,13 +27,11 @@ void setup()
     Serial.begin(115200);
     while (!Serial)
     {
-        Serial.println("no serial con");
+        Serial.println("No serial connection to arduino");
         continue;
     }
-    // Initialize the "link" serial port
-    // Use the lowest possible data rate to reduce error ratio
-    linkSerial.begin(4800);
 
+    linkSerial.begin(4800);
     pinMode(PUMP_RELAIS_PIN, OUTPUT);
     void callback();
     connectTohWifi();
@@ -64,7 +59,6 @@ void loop()
 
         if (err == DeserializationError::Ok)
         {
-            Serial.println("Serial Message OK");
             to_publish = doc;
             Serial.print("water_level = ");
             Serial.println(doc["water_level"].as<int>());
