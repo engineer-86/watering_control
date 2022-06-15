@@ -10,8 +10,8 @@
 #include <pump.hpp>
 
 #define WATER_TANK_LEVEL_PERCENT_MIN 10
-#define WATER_TANK_LEVEL_PERCENT_MAX 95
-#define SOIL_WET 80
+#define WATER_TANK_LEVEL_PERCENT_MAX 100
+#define SOIL_WET 75
 #define SERIAL_RX 13 // 13
 #define SERIAL_TX 15 // 15
 
@@ -81,7 +81,7 @@ void loop()
                 linkSerial.read();
         }
 
-        if ((int)doc["water_level"] <= WATER_TANK_LEVEL_PERCENT_MIN)
+        if ((int)doc["water_level"] < WATER_TANK_LEVEL_PERCENT_MIN)
         {
             info_text = "Water level low, refill!";
             doc["info"] = info_text;
@@ -89,18 +89,12 @@ void loop()
             pump_on = false;
             stop_pump();
         }
-        else if ((int)doc["water_level"] >= WATER_TANK_LEVEL_PERCENT_MAX)
+        else if ((int)doc["water_level"] > WATER_TANK_LEVEL_PERCENT_MIN)
         {
-            info_text = "Water level too high, drain!";
-            doc["info"] = info_text;
-            Serial.println(info_text);
-        }
-        else
-        {
-            info_text = "Water level ok!";
+            info_text = "Water level good!";
             doc["info"] = info_text;
 
-            if (((int)doc["sensor"]["moisture_sensor_2"] < SOIL_DRY) && !pump_on)
+            if (((int)doc["sensor"]["moisture_sensor_2"] < SOIL_WET) && !pump_on)
             {
                 info_text = "Soil dry, and pump2 on";
                 pump_on = true;
@@ -108,7 +102,7 @@ void loop()
                 doc["pump_on"] = pump_on;
                 doc["info"] = info_text;
             }
-            else if (((int)doc["sensor"]["moisture_sensor_2"] > SOIL_DRY) && pump_on)
+            else if (((int)doc["sensor"]["moisture_sensor_2"] > SOIL_WET) && pump_on)
             {
                 info_text = "Soil wet and pump2 off";
                 pump_on = false;
