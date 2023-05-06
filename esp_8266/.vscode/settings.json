@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "array": "cpp",
+        "*.tcc": "cpp",
+        "compare": "cpp",
+        "ostream": "cpp",
+        "streambuf": "cpp",
+        "typeinfo": "cpp",
+        "*.bak": "cpp",
+        "*.bak2": "cpp"
+    }
+}
