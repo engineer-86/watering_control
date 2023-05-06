@@ -164,5 +164,5 @@ All of these libraries are available through the PlatformIO library manager and 
 
 ## Contributors
 
-This project was created by Konrad Münch. If you have any questions or suggestions, please feel free to contact me.
+This project was created by Konrad Münch. If you have any questions or suggestions, please feel free to contact me [konrad@muench.engineer](mailto:konrad@muench.engineer)
 
